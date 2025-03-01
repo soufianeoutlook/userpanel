@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock, Phone } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -9,8 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import PhoneInput from "./PhoneInput";
-import PinPad from "./PinPad";
+import { Input } from "../ui/input";
 
 interface LoginScreenProps {
   onLogin?: (phoneNumber: string, pin: string) => void;
@@ -19,7 +18,7 @@ interface LoginScreenProps {
   error?: string;
 }
 
-const LoginScreen = ({
+const ModernLoginScreen = ({
   onLogin = () => {},
   onSignupClick = () => {},
   isLoading = false,
@@ -31,15 +30,18 @@ const LoginScreen = ({
   const [phoneError, setPhoneError] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const handlePhoneComplete = (value: string) => {
-    setPhoneNumber(value);
-    setPhoneError("");
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 10) {
+      setPhoneNumber(value);
+      setPhoneError("");
+    }
   };
 
-  const handlePinComplete = (value: string) => {
-    setPin(value);
-    if (value.length === 4) {
-      handleLogin();
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 4) {
+      setPin(value);
     }
   };
 
@@ -48,14 +50,11 @@ const LoginScreen = ({
       setPhoneError("الرجاء إدخال رقم هاتف صحيح مكون من 10 أرقام");
       return;
     }
-
-    // For simplicity, we'll just proceed to PIN screen
-    // This avoids network errors if the backend is not running
     setPhoneError("");
     setStep("pin");
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (phoneNumber.length === 10 && pin.length === 4) {
       try {
         console.log("Attempting login with:", { phone: phoneNumber, pin });
@@ -64,6 +63,8 @@ const LoginScreen = ({
         console.error("Login error:", error);
         setLoginError("حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.");
       }
+    } else if (pin.length < 4) {
+      setLoginError("الرجاء إدخال رمز PIN مكون من 4 أرقام");
     }
   };
 
@@ -73,19 +74,35 @@ const LoginScreen = ({
     setLoginError("");
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      if (step === "phone") {
+        handleContinue();
+      } else if (step === "pin") {
+        handleLogin();
+      }
+    }
+  };
+
   return (
-    <div className="w-full max-w-md">
-      <Card className="w-full max-w-md shadow-md border-0">
-        <CardHeader className="text-center pb-2">
+    <div className="w-full max-w-md mx-auto">
+      <Card className="w-full shadow-md border-0 bg-white overflow-hidden">
+        {/* Background image with person holding gift */}
+        <div className="relative h-48 bg-purple-600 overflow-hidden">
           <img
-            src="/logo.png"
-            alt="ExpressWin"
-            className="h-16 mx-auto mb-4"
-            onError={(e) => {
-              e.currentTarget.src =
-                "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%2250%22%20viewBox%3D%220%200%20150%2050%22%3E%3Crect%20fill%3D%22%23a855f7%22%20width%3D%22150%22%20height%3D%2250%22%2F%3E%3Ctext%20fill%3D%22%23ffffff%22%20font-family%3D%22Arial%2CSans-serif%22%20font-size%3D%2214%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3EExpressWin%3C%2Ftext%3E%3C%2Fsvg%3E";
-            }}
+            src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+            alt="Person holding gift"
+            className="w-full h-full object-cover opacity-50"
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-600/50 to-purple-900/80 flex items-center justify-center">
+            <div className="text-center text-white">
+              <h1 className="text-3xl font-bold mb-2">ExpressWin</h1>
+              <p className="text-lg">برنامج الولاء الرقمي</p>
+            </div>
+          </div>
+        </div>
+
+        <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl font-bold text-gray-800">
             {step === "phone" ? "مرحباً بك" : "أدخل رمز PIN"}
           </CardTitle>
@@ -99,19 +116,28 @@ const LoginScreen = ({
         <CardContent className="pt-6">
           {step === "phone" ? (
             <div className="space-y-4">
-              <PhoneInput
-                value={phoneNumber}
-                onChange={setPhoneNumber}
-                onComplete={handlePhoneComplete}
-                placeholder="أدخل رقم هاتفك"
-                required
-              />
+              <div className="relative">
+                <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="tel"
+                  placeholder="أدخل رقم هاتفك"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  onKeyPress={handleKeyPress}
+                  className="pr-10 text-right bg-gray-50 h-12"
+                  maxLength={10}
+                  required
+                />
+              </div>
+              <p className="text-xs text-gray-500 text-right">
+                الصيغة: XXXXXXXXXX
+              </p>
               {phoneError && (
                 <p className="text-red-500 text-sm text-center">{phoneError}</p>
               )}
               <Button
                 onClick={handleContinue}
-                className="w-full bg-purple-600 hover:bg-purple-700 mt-4 flex items-center justify-center gap-2 shadow-sm"
+                className="w-full bg-purple-600 hover:bg-purple-700 mt-4 flex items-center justify-center gap-2 shadow-sm h-12"
                 disabled={isLoading || phoneNumber.length < 10}
               >
                 متابعة
@@ -125,11 +151,19 @@ const LoginScreen = ({
                   رقم الهاتف: {phoneNumber}
                 </p>
               </div>
-              <PinPad
-                onPinChange={setPin}
-                onPinComplete={handlePinComplete}
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="password"
+                  placeholder="أدخل رمز PIN المكون من 4 أرقام"
+                  value={pin}
+                  onChange={handlePinChange}
+                  onKeyPress={handleKeyPress}
+                  className="pr-10 text-right bg-gray-50 h-12"
+                  maxLength={4}
+                  required
+                />
+              </div>
               {(error || loginError) && (
                 <p className="text-red-500 text-sm text-center">
                   {error || loginError}
@@ -137,7 +171,7 @@ const LoginScreen = ({
               )}
               <Button
                 onClick={handleLogin}
-                className="w-full bg-purple-600 hover:bg-purple-700 mt-4 flex items-center justify-center gap-2 shadow-sm"
+                className="w-full bg-purple-600 hover:bg-purple-700 mt-4 flex items-center justify-center gap-2 shadow-sm h-12"
                 disabled={isLoading || pin.length < 4}
               >
                 تسجيل الدخول
@@ -182,4 +216,4 @@ const LoginScreen = ({
   );
 };
 
-export default LoginScreen;
+export default ModernLoginScreen;

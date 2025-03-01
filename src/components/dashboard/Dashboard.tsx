@@ -92,7 +92,7 @@ const Dashboard = ({
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg p-4 shadow-sm">
             <h1 className="text-2xl sm:text-3xl font-bold text-purple-700">
-              مرحباً بك، {userData.phone || userData.name}!
+              مرحباً بك، {userData.phone}!
             </h1>
             <p className="mt-2 text-gray-600">
               مرحبًا بك في برنامج الولاء الرقمي

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import LoginScreen from "./auth/LoginScreen";
+import LoginScreen from "./auth/ModernLoginScreen";
 import SignupScreen from "./auth/SignupScreen";
 import Dashboard from "./dashboard/Dashboard";
 import LandingPage from "./landing/LandingPage";
@@ -16,20 +16,33 @@ const Home = () => {
   const handleLogin = async (phoneNumber: string, pin: string) => {
     try {
       // Call the API to authenticate the user
-      const { login } = await import("../api/auth");
-      const response = await login(phoneNumber, pin);
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone: phoneNumber, pin }),
+      });
 
-      if (response.success) {
+      const data = await response.json();
+      console.log("Login response:", data);
+
+      if (data.success) {
+        // Store token and user data in localStorage
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("isAuthenticated", "true");
+
         setIsAuthenticated(true);
         setLoginError("");
       } else {
         setLoginError(
-          response.message || "Invalid credentials. Please try again.",
+          data.message || "بيانات الاعتماد غير صالحة. يرجى المحاولة مرة أخرى.",
         );
       }
     } catch (error) {
       console.error("Login error:", error);
-      setLoginError("An error occurred. Please try again.");
+      setLoginError("حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.");
     }
   };
 
@@ -70,17 +83,7 @@ const Home = () => {
   if (isAuthenticated) {
     return (
       <Routes>
-        <Route
-          path="/"
-          element={
-            <Dashboard
-              userName="Jane Smith"
-              userPhone="(555) 123-4567"
-              userPoints={1250}
-              initialTab="cards"
-            />
-          }
-        />
+        <Route path="/" element={<Dashboard initialTab="cards" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

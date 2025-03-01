@@ -14,6 +14,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
+          {import.meta.env.VITE_TEMPO === "true" && (
+            <Route path="/tempobook/*" />
+          )}
         </Routes>
         {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
       </div>

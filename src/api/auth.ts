@@ -33,6 +33,9 @@ export const login = async (
   pin: string,
 ): Promise<LoginResponse> => {
   try {
+    console.log(
+      `Attempting to login with API URL: ${API_BASE_URL}${ENDPOINTS.LOGIN}`,
+    );
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.LOGIN}`, {
       method: "POST",
       headers: {
@@ -42,6 +45,7 @@ export const login = async (
     });
 
     const data = await response.json();
+    console.log("Login response:", data);
 
     if (response.ok) {
       // Store token in localStorage if login successful
@@ -52,11 +56,18 @@ export const login = async (
       }
       return data;
     } else {
-      return { success: false, message: data.message || "Login failed" };
+      return {
+        success: false,
+        message: data.message || "رقم PIN غير صحيح. يرجى المحاولة مرة أخرى.",
+      };
     }
   } catch (error) {
     console.error("Login error:", error);
-    return { success: false, message: "Network error. Please try again." };
+    return {
+      success: false,
+      message:
+        "خطأ في الاتصال بالخادم. الرجاء التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+    };
   }
 };
 
